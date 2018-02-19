@@ -64,7 +64,9 @@ class SNES():
         utilities = computeUtilities(fitnesses)
         self.center = self.center + self.sigmas * dot(utilities, samples)
         covGradient = dot(utilities, [s ** 2 - 1 for s in samples])
-        self.sigmas =  self.sigmas* exp(0.5 * self.learningRate * covGradient) 
+        self.sigmas =  self.sigmas* exp(0.5 * self.learningRate * covGradient)
+        best = self.bestFitness
+        return best
         
 
 
@@ -93,13 +95,17 @@ if __name__ == "__main__":
     snes = SNES(token, 1, 10)
     
 #    snes = SNES(ones(dim), 1, 10)
-    
+    best= np.zeros(1000)
     for i in range(0,1000):
         asked = snes.ask()
         #print asked
 #        told = [elli(a) for a in asked ]
         told = [entropycalculator(a,trainedModel) for a in asked ]
         snes.tell(asked,np.reshape(told,(10)))
+        best[i] = snes.tell(asked,np.reshape(told,(10)))
+    import matplotlib.pyplot as plt
+    plt.plot(best)
+        
 
 
     # # example run
