@@ -75,8 +75,7 @@ if __name__ == "__main__":
 #    def elli(x):
 #        return -dot(A * x, x)
     my_path = os.path.abspath(os.path.dirname('__file__'))
-    os.path.join(my_path, 'token.pkl')
-   # Initialisation (vector for what is cold)
+     # Initialisation (vector for what is cold)
     token = pickle.load(open(os.path.join(my_path, r'token.pkl'),'rb'))
    
     def entropycalculator(x):
