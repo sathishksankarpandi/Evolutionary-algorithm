@@ -4,9 +4,12 @@ __author__ = 'Tom Schaul, tom@idsia.ch, Spyridon Samothrakis ssamot@essex.ac.uk'
 
 from numpy import dot, exp, log, sqrt, ones, zeros_like, Inf, argmax
 import numpy as np
-import pickle
 from scipy.stats import entropy
 import os
+import cloudpickle as pickle
+import random
+random.seed(500)
+
 
 def computeUtilities(fitnesses):
     L = len(fitnesses)
@@ -61,39 +64,42 @@ class SNES():
         utilities = computeUtilities(fitnesses)
         self.center = self.center + self.sigmas * dot(utilities, samples)
         covGradient = dot(utilities, [s ** 2 - 1 for s in samples])
-        self.sigmas = self.sigmas * exp(0.5 * self.learningRate * covGradient)
-        return covGradient, self.learningRate
-
+        self.sigmas =  self.sigmas* exp(0.5 * self.learningRate * covGradient) 
+        
 
 
 if __name__ == "__main__":
 
     # 100-dimensional ellipsoid function
-    dim = 30
+    dim = 300
 #    A = np.array([np.power(1000, 2 * i / (dim - 1.)) for i in range(dim)])
-#    
+##    
 #    def elli(x):
 #        return -dot(A * x, x)
+#    
     my_path = os.path.abspath(os.path.dirname('__file__'))
-     # Initialisation (vector for what is cold)
+
+#    Initialisation (vector for what is cold)
     token = pickle.load(open(os.path.join(my_path, r'token.pkl'),'rb'))
-   
-    def entropycalculator(x):
-        import cloudpickle as pickle
-        with open(os.path.join(my_path, r'intent_classifier.pkl'), 'rb') as f:
-            trainedModel = pickle.load(f)
+    
+  
+    with open(os.path.join(my_path, r'intent_classifier.pkl'), 'rb') as f:
+        trainedModel = pickle.load(f)
+    
+    def entropycalculator(x,trainedModel):
         proba = trainedModel.predict([x])
         entro = entropy(np.transpose([proba[1]]))
         return entro  
-
-#    snes = SNES(np.ones(dim), 1, 10)
     snes = SNES(token, 1, 10)
+    
+#    snes = SNES(ones(dim), 1, 10)
+    
     for i in range(0,1000):
         asked = snes.ask()
         #print asked
 #        told = [elli(a) for a in asked ]
-        told = [entropycalculator(a) for a in asked ]
-        snes.tell(asked,told)
+        told = [entropycalculator(a,trainedModel) for a in asked ]
+        snes.tell(asked,np.reshape(told,(10)))
 
 
     # # example run
