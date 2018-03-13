@@ -107,8 +107,6 @@ if __name__ == "__main__":
     plt.plot(best)
         
 # loading the glove model and changing thr list to array
-from gensim.models import Word2Vec
-from gensim.utils import simple_preprocess
 import gensim.models
 import os
 cwd = os.path.abspath(os.path.dirname('__file__'))
@@ -118,7 +116,7 @@ model = gensim.models.KeyedVectors.load_word2vec_format(my_path, binary=True)
 word_vectors = np.array(model.vectors)
 def close_wordfinder(vec):
     """ finding the closest words of the vector """    
-    Nwords=[]  
+      
     diff = word_vectors - vec
     delta = np.sum(diff * diff, axis=1)
     i = np.argmin(delta)
