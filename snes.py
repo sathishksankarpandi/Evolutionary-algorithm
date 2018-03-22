@@ -1,4 +1,4 @@
-__author__ = 'Tom Schaul, tom@idsia.ch, Spyridon Samothrakis ssamot@essex.ac.uk'
+__author__ = 'Tom Schaul, tom@idsia.ch, Spyridon Samothrakis ssamot@essex.ac.uk, Sathish Sankarpandi'
 
 ## ssamot hacked ask/tell interface, algorithmic implementation is from Tom Schaul
 
@@ -52,7 +52,6 @@ class SNES():
     def tell(self, asked, fitnesses):
 
         samples = self.samples
-
         assert(np.array_equal(asked, self.asked))
         if max(fitnesses) > self.bestFitness:
             self.bestFitness = max(fitnesses)
@@ -71,11 +70,31 @@ class SNES():
 
 
 if __name__ == "__main__":
-
+    
+    
+    # loading the glove model and changing the list to array
+    import gensim.models
+    
+    cwd = os.path.abspath(os.path.dirname('__file__'))
+    cwd = r'C:\Users\Sathish\Desktop\Datasets'
+    my_path = os.path.join(cwd, 'GoogleNews-vectors-negative300.bin')
+    model = gensim.models.KeyedVectors.load_word2vec_format(my_path, binary=True)
+    word_vectors = np.array(model.vectors)
+    def close_wordfinder(vec):
+        """ finding the closest words of the vector """    
+          
+        diff = word_vectors - vec
+        delta = np.sum(diff * diff, axis=1)
+        i = np.argmin(delta)
+        return i
+    
+    closest_word =  model.index2word[close_wordfinder(asked[300])]
+    
+         
+    
     # 100-dimensional ellipsoid function
     dim = 300
 #    A = np.array([np.power(1000, 2 * i / (dim - 1.)) for i in range(dim)])
-##    
 #    def elli(x):
 #        return -dot(A * x, x)
 #    
@@ -83,8 +102,7 @@ if __name__ == "__main__":
 
 #    Initialisation (vector for what is cold)
     token = pickle.load(open(os.path.join(my_path, r'token.pkl'),'rb'))
-    
-  
+      
     with open(os.path.join(my_path, r'intent_classifier.pkl'), 'rb') as f:
         trainedModel = pickle.load(f)
     
@@ -100,30 +118,17 @@ if __name__ == "__main__":
         asked = snes.ask()
         #print asked
 #        told = [elli(a) for a in asked ]
-        told = [entropycalculator(a,trainedModel) for a in asked ]
+        closest_word = [model.index2word[close_wordfinder(a)] for a in asked] 
+        vec2word = ([model.get_vector(word) for word in closest_word])
+#        mean_vec2word = np.mean(vec2word,axis=0)
+#        told = [entropycalculator(a,trainedModel) for a in asked]
+        told = [entropycalculator(a,trainedModel) for a in vec2word]
         snes.tell(asked,np.reshape(told,(10)))
         best[i] = snes.tell(asked,np.reshape(told,(10)))
     import matplotlib.pyplot as plt
     plt.plot(best)
         
-# loading the glove model and changing thr list to array
-import gensim.models
-import os
-cwd = os.path.abspath(os.path.dirname('__file__'))
-my_path = os.path.join(cwd, 'GoogleNews-vectors-negative300.bin')
-model = gensim.models.KeyedVectors.load_word2vec_format(my_path, binary=True)
-
-word_vectors = np.array(model.vectors)
-def close_wordfinder(vec):
-    """ finding the closest words of the vector """    
-      
-    diff = word_vectors - vec
-    delta = np.sum(diff * diff, axis=1)
-    i = np.argmin(delta)
-    return i
-
-closest_word =  model.index2word[close_wordfinder(asked[300])]
-    
+#closest_word =  model.index2word[close_wordfinder(asked[3])]
 
     # # example run
     # print SNES(elli, ones(dim), verbose=True)
